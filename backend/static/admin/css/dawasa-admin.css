@@ -1,0 +1,114 @@
+/* DAWASA admin — blue primary aligned with citizen app (#007AFF) */
+
+:root {
+  --dawasa-blue: #007AFF;
+  --dawasa-cyan: #4FACFE;
+  --dawasa-surface: #F4F8FC;
+}
+
+/* Dashboard stat cards */
+.dawasa-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.dawasa-stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 3px rgba(0, 122, 255, 0.08);
+  border: 1px solid rgba(0, 122, 255, 0.12);
+}
+
+.dawasa-stat-card .label {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dawasa-stat-card .value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dawasa-blue);
+  margin-top: 4px;
+}
+
+.dawasa-stat-card.accent-new .value { color: #dc2626; }
+.dawasa-stat-card.accent-progress .value { color: #ca8a04; }
+.dawasa-stat-card.accent-resolved .value { color: #16a34a; }
+
+.dawasa-panel {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 122, 255, 0.12);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.dawasa-panel-header {
+  background: linear-gradient(135deg, var(--dawasa-blue), var(--dawasa-cyan));
+  color: #fff;
+  padding: 14px 20px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.dawasa-table th {
+  background: var(--dawasa-surface);
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #475569;
+}
+
+.dawasa-table td {
+  padding: 12px 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.dawasa-table a {
+  color: var(--dawasa-blue);
+  font-weight: 500;
+}
+
+.dawasa-btn {
+  display: inline-block;
+  background: var(--dawasa-blue);
+  color: #fff !important;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none !important;
+}
+
+.dawasa-btn:hover {
+  background: #0066d6;
+}
+
+.dawasa-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dawasa-badge-new { background: #fee2e2; color: #dc2626; }
+.dawasa-badge-assigned { background: #fef3c7; color: #ca8a04; }
+.dawasa-badge-investigating { background: #dbeafe; color: #2563eb; }
+.dawasa-badge-resolved { background: #dcfce7; color: #16a34a; }
+
+.dawasa-assign-banner {
+  background: linear-gradient(135deg, #007AFF15, #4FACFE15);
+  border: 1px dashed var(--dawasa-blue);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}

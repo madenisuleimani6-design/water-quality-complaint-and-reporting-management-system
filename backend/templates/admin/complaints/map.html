@@ -1,0 +1,212 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block is_fullwidth %}1{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'admin/css/dawasa-map.css' %}" />
+{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:16px;color:#0f172a;">{{ title }}</h1>
+
+{% if not mapbox_token %}
+<div class="dawasa-map-empty">
+  {% trans "Add MAP_BOX_TOKEN to backend/.env to enable the interactive map." %}
+</div>
+{% elif complaint_count == 0 %}
+<div class="dawasa-map-empty">
+  {% trans "No geolocated complaints yet. Submit reports from the citizen app or run seed_demo_data." %}
+</div>
+{% else %}
+<div class="dawasa-map-layout">
+  <aside class="dawasa-map-sidebar">
+    <h2>{% trans "Complaint overview" %}</h2>
+    <div class="dawasa-map-stat">
+      <span>{% trans "On map" %}</span>
+      <strong id="visible-count">{{ complaint_count }}</strong>
+    </div>
+    <div class="dawasa-map-stat">
+      <span>{% trans "New" %}</span>
+      <strong style="color:#dc2626;">{{ status_counts.new }}</strong>
+    </div>
+    <div class="dawasa-map-stat">
+      <span>{% trans "Assigned" %}</span>
+      <strong style="color:#ca8a04;">{{ status_counts.assigned }}</strong>
+    </div>
+    <div class="dawasa-map-stat">
+      <span>{% trans "In progress" %}</span>
+      <strong style="color:#007AFF;">{{ status_counts.investigating }}</strong>
+    </div>
+    <div class="dawasa-map-stat">
+      <span>{% trans "Resolved" %}</span>
+      <strong style="color:#16a34a;">{{ status_counts.resolved }}</strong>
+    </div>
+
+    <h2 style="margin-top:20px;">{% trans "Filter by status" %}</h2>
+    <div class="dawasa-map-filters" id="status-filters">
+      <label class="dawasa-map-filter active" data-status="all">
+        <span class="dot" style="background:#007AFF;"></span>
+        {% trans "All complaints" %}
+      </label>
+      <label class="dawasa-map-filter active" data-status="new">
+        <span class="dot" style="background:#dc2626;"></span>
+        {% trans "New" %}
+      </label>
+      <label class="dawasa-map-filter active" data-status="assigned">
+        <span class="dot" style="background:#ca8a04;"></span>
+        {% trans "Assigned" %}
+      </label>
+      <label class="dawasa-map-filter active" data-status="investigating">
+        <span class="dot" style="background:#007AFF;"></span>
+        {% trans "Under investigation" %}
+      </label>
+      <label class="dawasa-map-filter active" data-status="resolved">
+        <span class="dot" style="background:#16a34a;"></span>
+        {% trans "Resolved" %}
+      </label>
+    </div>
+
+    <h2 style="margin-top:20px;">{% trans "Complaints on map" %}</h2>
+    <div class="dawasa-map-list" id="complaint-list">
+      {% for item in complaints_list %}
+      <div
+        class="dawasa-map-list-item"
+        role="button"
+        tabindex="0"
+        data-id="{{ item.id }}"
+        data-status="{{ item.status }}"
+      >
+        <span class="status-dot" style="background:{{ item.color }};"></span>
+        <span class="label">{{ item.label }}</span>
+        <span class="status-label">{{ item.status_label }}</span>
+      </div>
+      {% empty %}
+      <p style="font-size:12px;color:#64748b;margin:0;">{% trans "No complaints match the current filters." %}</p>
+      {% endfor %}
+    </div>
+
+    <p style="margin-top:16px;font-size:12px;color:#64748b;line-height:1.5;">
+      {% trans "Click a complaint to fly to its location. Zoom in to see color-coded pins." %}
+    </p>
+  </aside>
+
+  <div class="dawasa-map-container">
+    <div id="map"></div>
+  </div>
+</div>
+
+{{ geojson|json_script:"complaint-geojson" }}
+{% endif %}
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+{% if mapbox_token and complaint_count > 0 %}
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js"></script>
+<script src="{% static 'admin/js/dawasa-complaint-map.js' %}"></script>
+<script>
+function bootDawasaMap() {
+  const geoEl = document.getElementById("complaint-geojson");
+  const mapEl = document.getElementById("map");
+  if (!geoEl || !mapEl) return;
+  if (typeof mapboxgl === "undefined" || typeof initDawasaComplaintMap !== "function") {
+    mapEl.innerHTML = '<p style="padding:16px;color:#b91c1c;">Map failed to load. Check network access to Mapbox CDN.</p>';
+    return;
+  }
+
+  let fullGeojson;
+  try {
+    fullGeojson = JSON.parse(geoEl.textContent);
+    if (typeof fullGeojson === "string") {
+      fullGeojson = JSON.parse(fullGeojson);
+    }
+  } catch (err) {
+    mapEl.innerHTML = '<p style="padding:16px;color:#b91c1c;">Invalid map data. Refresh the page.</p>';
+    console.error("DAWASA map geojson parse error:", err);
+    return;
+  }
+  const activeStatuses = new Set(["new", "assigned", "investigating", "resolved"]);
+  const featureById = new Map(
+    fullGeojson.features.map(function (f) { return [f.properties.id, f]; }),
+  );
+
+  window.dawasaMapFilteredGeojson = function () {
+    return {
+      type: "FeatureCollection",
+      features: fullGeojson.features.filter(function (f) {
+        return activeStatuses.has(f.properties.status);
+      }),
+    };
+  };
+
+  window.dawasaMapUpdateVisibleCount = function (count) {
+    var el = document.getElementById("visible-count");
+    if (el) el.textContent = count;
+  };
+
+  window.dawasaMapSyncListVisibility = function () {
+    document.querySelectorAll(".dawasa-map-list-item").forEach(function (el) {
+      var visible = activeStatuses.has(el.dataset.status);
+      el.classList.toggle("hidden", !visible);
+    });
+  };
+
+  requestAnimationFrame(function () {
+    initDawasaComplaintMap({ token: "{{ mapbox_token|escapejs }}" });
+  });
+
+  document.querySelectorAll(".dawasa-map-list-item").forEach(function (el) {
+    function onSelect() {
+      var feature = featureById.get(el.dataset.id);
+      if (feature && window.dawasaMapFlyTo) {
+        window.dawasaMapFlyTo(feature);
+      }
+    }
+    el.addEventListener("click", onSelect);
+    el.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onSelect();
+      }
+    });
+  });
+
+  document.querySelectorAll(".dawasa-map-filter").forEach(function (el) {
+    el.addEventListener("click", function () {
+      var status = el.dataset.status;
+      if (status === "all") {
+        var allActive = el.classList.contains("active");
+        document.querySelectorAll(".dawasa-map-filter").forEach(function (item) {
+          item.classList.toggle("active", !allActive);
+        });
+        activeStatuses.clear();
+        if (!allActive) {
+          ["new", "assigned", "investigating", "resolved"].forEach(function (s) {
+            activeStatuses.add(s);
+          });
+        }
+      } else {
+        el.classList.toggle("active");
+        if (el.classList.contains("active")) {
+          activeStatuses.add(status);
+        } else {
+          activeStatuses.delete(status);
+        }
+      }
+      if (window.dawasaMapRefresh) window.dawasaMapRefresh();
+      if (window.dawasaMapEnsureSize) window.dawasaMapEnsureSize();
+    });
+  });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootDawasaMap);
+} else {
+  bootDawasaMap();
+}
+</script>
+{% endif %}
+{% endblock %}

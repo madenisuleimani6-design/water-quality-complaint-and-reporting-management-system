@@ -1,0 +1,3 @@
+export const TAB_BAR_CONTENT_HEIGHT = 56;
+export const TAB_HEADER_CONTENT_HEIGHT = 124;
+export const CONTENT_SHEET_TOP_PADDING = 16;

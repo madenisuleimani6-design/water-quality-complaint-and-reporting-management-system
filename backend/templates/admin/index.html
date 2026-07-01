@@ -1,0 +1,94 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="dawasa-stat-grid">
+  <div class="dawasa-stat-card">
+    <div class="label">{% trans "Total this month" %}</div>
+    <div class="value">{{ stats.total_month }}</div>
+  </div>
+  <div class="dawasa-stat-card accent-new">
+    <div class="label">{% trans "New (unassigned)" %}</div>
+    <div class="value">{{ stats.new }}</div>
+  </div>
+  <div class="dawasa-stat-card accent-progress">
+    <div class="label">{% trans "Assigned / In progress" %}</div>
+    <div class="value">{{ stats.in_progress }}</div>
+  </div>
+  <div class="dawasa-stat-card accent-resolved">
+    <div class="label">{% trans "Resolved" %}</div>
+    <div class="value">{{ stats.resolved }}</div>
+  </div>
+</div>
+
+{% if new_complaints %}
+<div class="dawasa-panel">
+  <div class="dawasa-panel-header">{% trans "New complaints: assign to operator" %}</div>
+  <table class="dawasa-table" style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th>{% trans "Location" %}</th>
+        <th>{% trans "Phone" %}</th>
+        <th>{% trans "Submitted" %}</th>
+        <th>{% trans "Action" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for complaint in new_complaints %}
+      <tr>
+        <td>{{ complaint.area_name|default:"-" }}</td>
+        <td>{{ complaint.phone|default:"-" }}</td>
+        <td>{{ complaint.submitted_at|date:"M d, H:i" }}</td>
+        <td>
+          <a class="dawasa-btn" href="{% url 'admin:complaints_complaint_change' complaint.id %}">
+            {% trans "Assign staff" %}
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="dawasa-panel">
+  <div class="dawasa-panel-header">{% trans "Recent complaints" %}</div>
+  <table class="dawasa-table" style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th>{% trans "Location" %}</th>
+        <th>{% trans "Status" %}</th>
+        <th>{% trans "Assigned to" %}</th>
+        <th>{% trans "Submitted" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for complaint in recent_complaints %}
+      <tr>
+        <td>
+          <a href="{% url 'admin:complaints_complaint_change' complaint.id %}">
+            {{ complaint.area_name|default:complaint.phone|default:complaint.id }}
+          </a>
+        </td>
+        <td>
+          <span class="dawasa-badge dawasa-badge-{{ complaint.status }}">
+            {{ complaint.get_status_display }}
+          </span>
+        </td>
+        <td>{{ complaint.assigned_to|default:"-" }}</td>
+        <td>{{ complaint.submitted_at|date:"M d, H:i" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">{% trans "No complaints yet. Run seed_demo_data or wait for citizen reports." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<p>
+  <a class="dawasa-btn" href="{% url 'admin:complaints_complaint_map' %}">{% trans "Open map view" %}</a>
+  <a href="{% url 'admin:complaints_complaint_changelist' %}" style="margin-left:12px;color:#007AFF;">
+    {% trans "All complaints" %}
+  </a>
+</p>
+{% endblock %}

@@ -1,0 +1,36 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploy branch: main | Root directory: backend (set in dashboard if not using blueprint)
+
+services:
+  - type: web
+    name: dawasa-api
+    runtime: python
+    region: frankfurt
+    plan: free
+    rootDir: backend
+    buildCommand: chmod +x ./build.sh && ./build.sh
+    startCommand: daphne config.asgi:application -b 0.0.0.0 -p $PORT
+    healthCheckPath: /admin/login/
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.0"
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_ALLOWED_HOSTS
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dawasa-db
+          property: connectionString
+      - key: OTP_MOCK_MODE
+        value: "false"
+
+databases:
+  - name: dawasa-db
+    plan: free
+    databaseName: dawasa_water_quality
+    user: dawasa

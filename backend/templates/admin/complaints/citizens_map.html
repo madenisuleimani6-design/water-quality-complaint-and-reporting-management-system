@@ -1,0 +1,139 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block is_fullwidth %}1{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'admin/css/dawasa-map.css' %}" />
+{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:16px;color:#0f172a;">{{ title }}</h1>
+
+{% if not mapbox_token %}
+<div class="dawasa-map-empty">
+  {% trans "Add MAP_BOX_TOKEN to backend/.env to enable the interactive map." %}
+</div>
+{% elif citizen_count == 0 %}
+<div class="dawasa-map-empty">
+  {% trans "No geolocated citizens yet. Citizens appear here after registering with location from the mobile app." %}
+</div>
+{% else %}
+<div class="dawasa-map-layout">
+  <aside class="dawasa-map-sidebar">
+    <h2>{% trans "Registered citizens" %}</h2>
+    <div class="dawasa-map-stat">
+      <span>{% trans "On map" %}</span>
+      <strong id="visible-count">{{ citizen_count }}</strong>
+    </div>
+
+    <h2 style="margin-top:20px;">{% trans "Citizens on map" %}</h2>
+    <div class="dawasa-map-list" id="complaint-list">
+      {% for item in citizens_list %}
+      <div
+        class="dawasa-map-list-item"
+        role="button"
+        tabindex="0"
+        data-id="{{ item.id }}"
+        data-status="{{ item.status }}"
+      >
+        <span class="status-dot" style="background:{{ item.color }};"></span>
+        <span class="label">{{ item.label }}</span>
+        <span class="status-label">{{ item.status_label }}</span>
+      </div>
+      {% empty %}
+      <p style="font-size:12px;color:#64748b;margin:0;">{% trans "No citizens on the map." %}</p>
+      {% endfor %}
+    </div>
+
+    <p style="margin-top:16px;font-size:12px;color:#64748b;line-height:1.5;">
+      {% trans "Click a citizen to fly to their registered location." %}
+    </p>
+  </aside>
+
+  <div class="dawasa-map-container">
+    <div id="map"></div>
+  </div>
+</div>
+
+{{ geojson|json_script:"complaint-geojson" }}
+{% endif %}
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+{% if mapbox_token and citizen_count > 0 %}
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js"></script>
+<script src="{% static 'admin/js/dawasa-complaint-map.js' %}"></script>
+<script>
+function bootDawasaCitizensMap() {
+  const geoEl = document.getElementById("complaint-geojson");
+  const mapEl = document.getElementById("map");
+  if (!geoEl || !mapEl) return;
+  if (typeof mapboxgl === "undefined" || typeof initDawasaComplaintMap !== "function") {
+    mapEl.innerHTML = '<p style="padding:16px;color:#b91c1c;">Map failed to load. Check network access to Mapbox CDN.</p>';
+    return;
+  }
+
+  let fullGeojson;
+  try {
+    fullGeojson = JSON.parse(geoEl.textContent);
+    if (typeof fullGeojson === "string") {
+      fullGeojson = JSON.parse(fullGeojson);
+    }
+  } catch (err) {
+    mapEl.innerHTML = '<p style="padding:16px;color:#b91c1c;">Invalid map data. Refresh the page.</p>';
+    console.error("DAWASA citizens map geojson parse error:", err);
+    return;
+  }
+
+  const activeStatuses = new Set(["registered"]);
+  const featureById = new Map(
+    fullGeojson.features.map(function (f) { return [f.properties.id, f]; }),
+  );
+
+  window.dawasaMapFilteredGeojson = function () {
+    return {
+      type: "FeatureCollection",
+      features: fullGeojson.features.filter(function (f) {
+        return activeStatuses.has(f.properties.status);
+      }),
+    };
+  };
+
+  window.dawasaMapUpdateVisibleCount = function (count) {
+    var el = document.getElementById("visible-count");
+    if (el) el.textContent = count;
+  };
+
+  requestAnimationFrame(function () {
+    initDawasaComplaintMap({ token: "{{ mapbox_token|escapejs }}" });
+  });
+
+  document.querySelectorAll(".dawasa-map-list-item").forEach(function (el) {
+    function onSelect() {
+      var feature = featureById.get(el.dataset.id);
+      if (feature && window.dawasaMapFlyTo) {
+        window.dawasaMapFlyTo(feature);
+      }
+    }
+    el.addEventListener("click", onSelect);
+    el.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onSelect();
+      }
+    });
+  });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootDawasaCitizensMap);
+} else {
+  bootDawasaCitizensMap();
+}
+</script>
+{% endif %}
+{% endblock %}

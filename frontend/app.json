@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "DAWASA Water Quality",
+    "slug": "dawasa-water-quality",
+    "version": "1.0.0",
+    "scheme": "dawasa-water-quality",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "softwareKeyboardLayoutMode": "pan",
+      "statusBar": {
+        "barStyle": "light-content",
+        "translucent": true,
+        "backgroundColor": "#00000000"
+      },
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "name": "DAWASA Water Quality",
+      "shortName": "DAWASA",
+      "themeColor": "#007AFF",
+      "backgroundColor": "#0f172a",
+      "display": "standalone",
+      "orientation": "portrait",
+      "lang": "en",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow DAWASA to access your camera to report water quality issues."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow DAWASA to use your location to tag water quality reports."
+        }
+      ]
+    ]
+  }
+}
