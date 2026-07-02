@@ -7,7 +7,12 @@ import { App } from "./App";
 import i18n from "./i18n";
 import "./index.css";
 
-registerSW({ immediate: true });
+const updateSW = registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    void updateSW(true);
+  },
+});
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
