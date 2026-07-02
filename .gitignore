@@ -27,7 +27,6 @@ backend/.mypy_cache/
 # Django
 backend/media/
 backend/staticfiles/
-backend/db.sqlite3
 backend/tmp_sqlite_dump.json
 backend/*.log
 
