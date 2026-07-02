@@ -146,6 +146,8 @@
     "offlineMessage": "No connection. Your report will be sent automatically when you reconnect.",
     "locationUnavailable": "Location unavailable",
     "locationRequired": "GPS coordinates are required to submit. Go back and retake the photo with location enabled.",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
     "areaManualLabel": "Area / ward (optional)",
     "areaManualPlaceholder": "e.g. Kinondoni — helps if GPS is unavailable",
     "retake": "Retake photo",

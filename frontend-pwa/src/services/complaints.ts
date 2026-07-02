@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import { COMPLAINTS_ENDPOINT, resolveMediaUrl } from "@/constants/config";
 import type { ComplaintDetail, ComplaintSummary } from "@/types/citizen";
 import { preparePhotoForUpload } from "@/utils/imageCompression";
@@ -33,18 +35,36 @@ function normalizeComplaint<T extends ComplaintApiRow>(row: T): T {
 }
 
 function formatApiError(error: unknown): string {
-  if (error && typeof error === "object" && "response" in error) {
-    const response = (error as { response?: { data?: unknown } }).response;
-    const data = response?.data;
-    if (typeof data === "string") return data;
+  if (axios.isAxiosError(error)) {
+    if (!error.response) {
+      if (error.code === "ECONNABORTED") {
+        return "Request timed out. Check your connection and try again.";
+      }
+      return "Could not reach the server. Check your internet connection.";
+    }
+
+    const data = error.response.data;
+    if (typeof data === "string" && data.trim()) return data.trim();
     if (data && typeof data === "object") {
       const record = data as Record<string, unknown>;
-      if (typeof record.detail === "string") return record.detail;
-      const photo = record.photo;
-      if (Array.isArray(photo) && typeof photo[0] === "string") return photo[0];
-      if (typeof photo === "string") return photo;
+      if (typeof record.detail === "string" && record.detail.trim()) {
+        return record.detail.trim();
+      }
+
+      const messages: string[] = [];
+      for (const [field, value] of Object.entries(record)) {
+        if (field === "detail") continue;
+        if (Array.isArray(value)) {
+          const text = value.filter((item) => typeof item === "string").join(", ");
+          if (text) messages.push(`${field}: ${text}`);
+        } else if (typeof value === "string" && value.trim()) {
+          messages.push(`${field}: ${value.trim()}`);
+        }
+      }
+      if (messages.length) return messages.join(" • ");
     }
   }
+
   return "submit failed";
 }
 
@@ -98,9 +118,10 @@ export async function submitComplaint(
       COMPLAINTS_ENDPOINT,
       formData,
       {
-        headers: { "Content-Type": "multipart/form-data" },
-        transformRequest: (payload) => payload,
-        timeout: 60000,
+        // Let the browser set multipart/form-data with the correct boundary.
+        timeout: 120000,
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
       },
     );
     return data;

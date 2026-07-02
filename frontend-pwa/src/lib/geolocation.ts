@@ -27,7 +27,7 @@ async function reverseGeocode(
     url.searchParams.set("format", "json");
     url.searchParams.set("lat", String(latitude));
     url.searchParams.set("lon", String(longitude));
-    url.searchParams.set("zoom", "16");
+    url.searchParams.set("zoom", "18");
     const response = await fetch(url.toString(), {
       headers: { Accept: "application/json" },
     });
@@ -37,20 +37,28 @@ async function reverseGeocode(
         suburb?: string;
         neighbourhood?: string;
         city_district?: string;
+        quarter?: string;
+        village?: string;
+        residential?: string;
+        road?: string;
         city?: string;
         town?: string;
-        state?: string;
       };
     };
     const addr = data.address;
     if (!addr) return null;
-    return [
-      addr.suburb ?? addr.neighbourhood ?? addr.city_district,
-      addr.city ?? addr.town,
-      addr.state,
-    ]
-      .filter(Boolean)
-      .join(", ");
+
+    const localArea =
+      addr.suburb ??
+      addr.neighbourhood ??
+      addr.city_district ??
+      addr.quarter ??
+      addr.village ??
+      addr.residential ??
+      addr.road;
+    if (!localArea) return null;
+
+    return [localArea, addr.city ?? addr.town].filter(Boolean).join(", ");
   } catch {
     return null;
   }
@@ -120,8 +128,8 @@ export function watchAccurateLocation(
     (position) => {
       if (!active) return;
       const location = positionToLocation(position);
+      onUpdate(location);
       if (location.latitude == null || location.longitude == null) {
-        onUpdate(location);
         return;
       }
       void reverseGeocode(location.latitude, location.longitude).then((areaName) => {

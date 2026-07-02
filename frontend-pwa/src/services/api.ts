@@ -3,6 +3,7 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import {
   API_URL,
   CITIZENS_TOKEN_REFRESH_ENDPOINT,
+  COMPLAINTS_ENDPOINT,
 } from "@/constants/config";
 import { clearAuthFlowState, loadTokens, saveTokens } from "@/utils/authStorage";
 
@@ -14,7 +15,22 @@ export const api = axios.create({
 
 let refreshPromise: Promise<string | null> | null = null;
 
+function isPublicComplaintCreate(config: InternalAxiosRequestConfig): boolean {
+  if ((config.method ?? "").toLowerCase() !== "post") return false;
+  const url = (config.url ?? "").replace(/\/$/, "");
+  return url === COMPLAINTS_ENDPOINT.replace(/\/$/, "");
+}
+
 api.interceptors.request.use(async (config) => {
+  if (config.data instanceof FormData && config.headers) {
+    delete config.headers["Content-Type"];
+    delete config.headers["content-type"];
+  }
+
+  if (isPublicComplaintCreate(config)) {
+    return config;
+  }
+
   const tokens = await loadTokens();
   if (tokens?.access) {
     config.headers.Authorization = `Bearer ${tokens.access}`;

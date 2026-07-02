@@ -146,6 +146,8 @@
     "offlineMessage": "Hakuna muunganisho. Ripoti yako itatumwa moja kwa moja ukirejea mtandaoni.",
     "locationUnavailable": "Eneo halipatikani",
     "locationRequired": "Kuratibu za GPS zinahitajika kutuma. Rudi nyuma na piga picha tena ukiwa umewezesha eneo.",
+    "latitude": "Latitudo",
+    "longitude": "Longitudo",
     "areaManualLabel": "Eneo / kata (si lazima)",
     "areaManualPlaceholder": "mf. Kinondoni — husaidia GPS isipopatikana",
     "retake": "Piga picha tena",
