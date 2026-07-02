@@ -135,7 +135,9 @@
     "title": "Ripoti Ubora wa Maji",
     "capture": "Piga Picha",
     "permissionDenied": "Ruhusa ya kamera inahitajika kuripoti tatizo.",
-    "locationDenied": "Eneo lako linatusaidia kupata eneo la tatizo."
+    "locationDenied": "Eneo lako linatusaidia kupata eneo la tatizo.",
+    "locationRequired": "Mahali pa GPS linahitajika kabla ya kuendelea. Wezesha eneo na ujaribu tena.",
+    "photoFailed": "Haikuwezekana kuchakata picha. Jaribu tena kwa picha ndogo."
   },
   "confirm": {
     "title": "Thibitisha na Tuma",
@@ -143,6 +145,7 @@
     "submit": "Tuma",
     "offlineMessage": "Hakuna muunganisho. Ripoti yako itatumwa moja kwa moja ukirejea mtandaoni.",
     "locationUnavailable": "Eneo halipatikani",
+    "locationRequired": "Kuratibu za GPS zinahitajika kutuma. Rudi nyuma na piga picha tena ukiwa umewezesha eneo.",
     "areaManualLabel": "Eneo / kata (si lazima)",
     "areaManualPlaceholder": "mf. Kinondoni — husaidia GPS isipopatikana",
     "retake": "Piga picha tena",

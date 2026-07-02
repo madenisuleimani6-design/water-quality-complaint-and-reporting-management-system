@@ -47,6 +47,10 @@ export function ReportConfirmPage() {
       return;
     }
 
+    if (latitude == null || longitude == null) {
+      return;
+    }
+
     clearError();
     const trimmedArea = manualArea.trim();
     const combinedNote = trimmedArea
@@ -57,8 +61,10 @@ export function ReportConfirmPage() {
 
     const result = await submit({
       photoUri,
+      photoFile: draft.photoFile,
       latitude,
       longitude,
+      areaName,
       note: combinedNote,
       phone: profile.phone,
       reporterName: profile.fullName,
@@ -142,8 +148,10 @@ export function ReportConfirmPage() {
 
         {error === "queue_full" ? (
           <AlertBanner message={t("confirm.queueFull")} variant="error" />
+        ) : error === "location_required" ? (
+          <AlertBanner message={t("confirm.locationRequired")} variant="error" />
         ) : error ? (
-          <AlertBanner message={t("confirm.submitError")} variant="error" />
+          <AlertBanner message={error === "submit failed" ? t("confirm.submitError") : error} variant="error" />
         ) : null}
 
         <div className="mb-3">
@@ -155,7 +163,7 @@ export function ReportConfirmPage() {
         </div>
 
         <PrimaryPillButton
-          disabled={imageLoading || imageError}
+          disabled={imageLoading || imageError || latitude == null || longitude == null}
           label={t("confirm.submit")}
           loading={isSubmitting}
           onPress={() => void handleSubmit()}

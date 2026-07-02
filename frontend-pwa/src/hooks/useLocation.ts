@@ -1,16 +1,24 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { fetchCurrentLocation } from "@/lib/geolocation";
+import {
+  fetchAccurateLocation,
+  watchAccurateLocation,
+  type CurrentLocation,
+} from "@/lib/geolocation";
 
-export type LocationState = {
-  latitude: number | null;
-  longitude: number | null;
-  areaName: string | null;
+export type LocationState = CurrentLocation & {
   loading: boolean;
   error: string | null;
 };
 
-export function useLocation(): LocationState {
+type UseLocationOptions = {
+  /** Keep GPS updated while the report camera screen is open. */
+  watch?: boolean;
+};
+
+export function useLocation(options: UseLocationOptions = {}): LocationState & {
+  refresh: () => Promise<CurrentLocation>;
+} {
   const [state, setState] = useState<LocationState>({
     latitude: null,
     longitude: null,
@@ -19,38 +27,42 @@ export function useLocation(): LocationState {
     error: null,
   });
 
-  useEffect(() => {
-    let active = true;
+  const applyLocation = useCallback((location: CurrentLocation) => {
+    setState({
+      ...location,
+      loading: false,
+      error:
+        location.latitude == null && location.longitude == null
+          ? "unavailable"
+          : null,
+    });
+  }, []);
 
-    async function load() {
-      try {
-        const location = await fetchCurrentLocation();
-        if (active) {
-          setState({
-            ...location,
-            loading: false,
-            error:
-              location.latitude == null && location.longitude == null
-                ? "unavailable"
-                : null,
-          });
-        }
-      } catch {
-        if (active) {
-          setState((prev) => ({
-            ...prev,
-            loading: false,
-            error: "unavailable",
-          }));
-        }
-      }
+  const refresh = useCallback(async () => {
+    setState((prev) => ({ ...prev, loading: true, error: null }));
+    const location = await fetchAccurateLocation();
+    applyLocation(location);
+    return location;
+  }, [applyLocation]);
+
+  useEffect(() => {
+    if (options.watch) {
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+      const stop = watchAccurateLocation(
+        applyLocation,
+        () => applyLocation({ latitude: null, longitude: null, areaName: null }),
+      );
+      return stop;
     }
 
-    void load();
+    let active = true;
+    void fetchAccurateLocation().then((location) => {
+      if (active) applyLocation(location);
+    });
     return () => {
       active = false;
     };
-  }, []);
+  }, [applyLocation, options.watch]);
 
-  return state;
+  return { ...state, refresh };
 }

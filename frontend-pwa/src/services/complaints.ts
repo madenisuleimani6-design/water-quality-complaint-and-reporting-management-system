@@ -1,11 +1,14 @@
 import { COMPLAINTS_ENDPOINT, resolveMediaUrl } from "@/constants/config";
 import type { ComplaintDetail, ComplaintSummary } from "@/types/citizen";
+import { preparePhotoForUpload } from "@/utils/imageCompression";
 import { api } from "./api";
 
 export type SubmitComplaintInput = {
   photoUri: string;
+  photoFile?: File;
   latitude: number | null;
   longitude: number | null;
+  areaName?: string | null;
   note?: string;
   phone?: string;
   reporterName?: string;
@@ -29,6 +32,22 @@ function normalizeComplaint<T extends ComplaintApiRow>(row: T): T {
   };
 }
 
+function formatApiError(error: unknown): string {
+  if (error && typeof error === "object" && "response" in error) {
+    const response = (error as { response?: { data?: unknown } }).response;
+    const data = response?.data;
+    if (typeof data === "string") return data;
+    if (data && typeof data === "object") {
+      const record = data as Record<string, unknown>;
+      if (typeof record.detail === "string") return record.detail;
+      const photo = record.photo;
+      if (Array.isArray(photo) && typeof photo[0] === "string") return photo[0];
+      if (typeof photo === "string") return photo;
+    }
+  }
+  return "submit failed";
+}
+
 export async function listComplaintsByPhone(
   phone: string,
 ): Promise<ComplaintSummary[]> {
@@ -50,17 +69,19 @@ export async function fetchComplaintDetail(
 export async function submitComplaint(
   input: SubmitComplaintInput,
 ): Promise<SubmitComplaintResult> {
-  const formData = new FormData();
-  const filename = input.photoUri.split("/").pop() ?? "photo.jpg";
-  const response = await fetch(input.photoUri);
-  const blob = await response.blob();
-  formData.append("photo", blob, filename);
-
-  if (input.latitude !== null) {
-    formData.append("latitude", String(input.latitude));
+  if (input.latitude == null || input.longitude == null) {
+    throw new Error("location_required");
   }
-  if (input.longitude !== null) {
-    formData.append("longitude", String(input.longitude));
+
+  const formData = new FormData();
+  const photoFile =
+    input.photoFile ?? (await preparePhotoForUpload(input.photoUri));
+  formData.append("photo", photoFile, photoFile.name);
+  formData.append("latitude", String(input.latitude));
+  formData.append("longitude", String(input.longitude));
+
+  if (input.areaName?.trim()) {
+    formData.append("area_name", input.areaName.trim());
   }
   if (input.note?.trim()) {
     formData.append("note", input.note.trim());
@@ -72,14 +93,18 @@ export async function submitComplaint(
     formData.append("reporterName", input.reporterName.trim());
   }
 
-  const { data } = await api.post<SubmitComplaintResult>(
-    COMPLAINTS_ENDPOINT,
-    formData,
-    {
-      headers: { "Content-Type": "multipart/form-data" },
-      transformRequest: (payload) => payload,
-    },
-  );
-
-  return data;
+  try {
+    const { data } = await api.post<SubmitComplaintResult>(
+      COMPLAINTS_ENDPOINT,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+        transformRequest: (payload) => payload,
+        timeout: 60000,
+      },
+    );
+    return data;
+  } catch (error) {
+    throw new Error(formatApiError(error));
+  }
 }

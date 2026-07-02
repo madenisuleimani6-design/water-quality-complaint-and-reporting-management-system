@@ -21,11 +21,17 @@ export function useSubmit() {
     setState({ isSubmitting: true, error: null, queuedOffline: false });
 
     try {
+      if (input.latitude == null || input.longitude == null) {
+        setState({ isSubmitting: false, error: "location_required", queuedOffline: false });
+        return { success: false as const, error: "location_required" };
+      }
+
       if (!isOnline()) {
         await enqueueSubmission({
           photoUri: input.photoUri,
           latitude: input.latitude,
           longitude: input.longitude,
+          areaName: input.areaName ?? "",
           note: input.note ?? "",
           phone: input.phone ?? "",
           reporterName: input.reporterName ?? "",

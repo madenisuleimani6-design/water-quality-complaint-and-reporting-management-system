@@ -135,7 +135,9 @@
     "title": "Report Water Quality",
     "capture": "Capture",
     "permissionDenied": "Camera permission is required to report an issue.",
-    "locationDenied": "Location permission helps us find the issue area."
+    "locationDenied": "Location permission helps us find the issue area.",
+    "locationRequired": "GPS location is required before you can continue. Enable location and try again.",
+    "photoFailed": "Could not process the photo. Try again with a smaller image."
   },
   "confirm": {
     "title": "Confirm & Submit",
@@ -143,6 +145,7 @@
     "submit": "Submit",
     "offlineMessage": "No connection. Your report will be sent automatically when you reconnect.",
     "locationUnavailable": "Location unavailable",
+    "locationRequired": "GPS coordinates are required to submit. Go back and retake the photo with location enabled.",
     "areaManualLabel": "Area / ward (optional)",
     "areaManualPlaceholder": "e.g. Kinondoni — helps if GPS is unavailable",
     "retake": "Retake photo",

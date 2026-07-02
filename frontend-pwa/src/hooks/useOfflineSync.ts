@@ -12,6 +12,7 @@ export function useOfflineSync() {
           photoUri: item.photoUri,
           latitude: item.latitude,
           longitude: item.longitude,
+          areaName: item.areaName,
           note: item.note,
           phone: item.phone || undefined,
           reporterName: item.reporterName || undefined,

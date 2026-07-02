@@ -3,7 +3,7 @@
 
 {% block admin_change_form_document_ready %}
 {{ block.super }}
-{% if mapbox_token %}
+{% if mapbox_token_status == 'ok' %}
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css" rel="stylesheet" />
 <link rel="stylesheet" href="{% static 'admin/css/dawasa-map.css' %}" />
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js"></script>

@@ -6,6 +6,7 @@ export type QueuedSubmission = {
   photoUri: string;
   latitude: number | null;
   longitude: number | null;
+  areaName: string;
   note: string;
   phone: string;
   reporterName: string;

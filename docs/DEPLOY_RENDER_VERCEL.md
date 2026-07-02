@@ -48,6 +48,7 @@ git checkout development
 | `CORS_ALLOWED_ORIGINS` | `https://your-app.vercel.app` |
 | `DATABASE_URL` | (from Postgres add-on) |
 | `OTP_MOCK_MODE` | `false` |
+| `MAP_BOX_TOKEN` | Full Mapbox **public** token from [mapbox.com](https://account.mapbox.com/) (starts with `pk.`, ~90+ chars). **Do not** use placeholders like `pk.eyJ1Ijoi...`. In Mapbox token settings, allow URL `https://YOUR-SERVICE.onrender.com/*`. |
 | `REDIS_URL` | (optional — enables live WebSocket status) |
 
 8. After deploy, open `https://YOUR-SERVICE.onrender.com/admin/` and create a superuser via Render shell:

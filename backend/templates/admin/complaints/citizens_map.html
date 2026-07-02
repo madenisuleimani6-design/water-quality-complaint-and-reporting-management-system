@@ -12,9 +12,13 @@
 {% block content %}
 <h1 style="margin-bottom:16px;color:#0f172a;">{{ title }}</h1>
 
-{% if not mapbox_token %}
+{% if mapbox_token_status == 'missing' %}
 <div class="dawasa-map-empty">
   {% trans "Add MAP_BOX_TOKEN to backend/.env to enable the interactive map." %}
+</div>
+{% elif mapbox_token_status == 'invalid' %}
+<div class="dawasa-map-empty">
+  {% trans "MAP_BOX_TOKEN is invalid on this server. Paste the full Mapbox public token (pk.eyJ...) in Render environment variables — not a placeholder like pk.eyJ1Ijoi..." %}
 </div>
 {% elif citizen_count == 0 %}
 <div class="dawasa-map-empty">
@@ -60,7 +64,7 @@
 
 {{ geojson|json_script:"complaint-geojson" }}
 
-{% if mapbox_token and citizen_count > 0 %}
+{% if mapbox_token_status == 'ok' and citizen_count > 0 %}
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js"></script>
 <script src="{% static 'admin/js/dawasa-complaint-map.js' %}"></script>
 <script>

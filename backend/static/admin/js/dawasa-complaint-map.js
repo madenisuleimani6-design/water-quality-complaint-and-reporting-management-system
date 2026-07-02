@@ -259,7 +259,14 @@
     map.addControl(new mapboxgl.FullscreenControl(), "top-right");
 
     map.on("error", function (e) {
-      console.error("DAWASA map error:", e && e.error ? e.error : e);
+      const err = e && e.error ? e.error : e;
+      console.error("DAWASA map error:", err);
+      const message =
+        err && (err.status === 401 || err.status === 403)
+          ? "Mapbox token rejected. Set the full MAP_BOX_TOKEN on the server and allow this admin URL in Mapbox token restrictions."
+          : "Map failed to load tiles. Check MAP_BOX_TOKEN and network access to api.mapbox.com.";
+      container.innerHTML =
+        '<p style="padding:16px;color:#b91c1c;line-height:1.5;">' + message + "</p>";
     });
 
     map.on("load", function () {

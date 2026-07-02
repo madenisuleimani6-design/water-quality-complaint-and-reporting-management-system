@@ -10,6 +10,7 @@ from unfold.admin import ModelAdmin, TabularInline
 from apps.complaints.context import reset_performed_by, set_performed_by
 from apps.users.models import StaffUser
 
+from .mapbox_utils import mapbox_token_status
 from .models import CitizenAccount, CitizenMessage, Complaint, ComplaintLog
 
 STATUS_MAP_COLORS = {
@@ -18,6 +19,14 @@ STATUS_MAP_COLORS = {
     Complaint.STATUS_INVESTIGATING: "#007AFF",
     Complaint.STATUS_RESOLVED: "#16a34a",
 }
+
+
+def _mapbox_admin_context():
+    token = settings.MAPBOX_TOKEN
+    return {
+        "mapbox_token": token,
+        "mapbox_token_status": mapbox_token_status(token),
+    }
 
 
 class ComplaintLogInline(TabularInline):
@@ -225,7 +234,7 @@ class ComplaintAdmin(ModelAdmin):
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
         extra_context = extra_context or {}
-        extra_context["mapbox_token"] = settings.MAPBOX_TOKEN
+        extra_context.update(_mapbox_admin_context())
         return super().change_view(request, object_id, form_url, extra_context)
 
     def map_view(self, request):
@@ -254,9 +263,9 @@ class ComplaintAdmin(ModelAdmin):
         ]
         context = {
             **self.admin_site.each_context(request),
+            **_mapbox_admin_context(),
             "title": "Complaint Map",
             "geojson": {"type": "FeatureCollection", "features": features},
-            "mapbox_token": settings.MAPBOX_TOKEN,
             "complaint_count": len(features),
             "complaints_list": complaints_list,
             "status_counts": status_counts,
@@ -440,9 +449,9 @@ class CitizenAccountAdmin(ModelAdmin):
         ]
         context = {
             **self.admin_site.each_context(request),
+            **_mapbox_admin_context(),
             "title": "Registered Citizens Map",
             "geojson": {"type": "FeatureCollection", "features": features},
-            "mapbox_token": settings.MAPBOX_TOKEN,
             "citizen_count": len(features),
             "citizens_list": citizens_list,
             "opts": self.model._meta,

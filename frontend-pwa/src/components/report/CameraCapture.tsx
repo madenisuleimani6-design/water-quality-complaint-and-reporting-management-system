@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { theme } from "@/constants/theme";
 
 type CameraCaptureProps = {
-  onPhotoReady: (uri: string) => Promise<void>;
+  onPhotoReady: (file: File) => Promise<void>;
   isCapturing: boolean;
   onClose: () => void;
 };
@@ -49,7 +49,8 @@ export function CameraCapture({
           className="hidden"
           onChange={(event) => {
             const file = event.target.files?.[0];
-            if (file) void onPhotoReady(URL.createObjectURL(file));
+            if (file) void onPhotoReady(file);
+            event.target.value = "";
           }}
         />
         <button

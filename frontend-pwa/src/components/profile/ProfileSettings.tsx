@@ -1,10 +1,11 @@
-import { CheckCircle, Globe, Info, MapPin, User } from "lucide-react";
+import { CheckCircle, Globe, Info, LogOut, MapPin, User } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { Card } from "@/components/layout/Card";
 import { PrimaryPillButton } from "@/components/layout/PrimaryPillButton";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Sheet } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import type { AppLanguage } from "@/constants/config";
@@ -58,6 +59,8 @@ export function ProfileSettings({
   const navigate = useNavigate();
   const [openSheet, setOpenSheet] = useState<ProfileSheet>(null);
   const [draftValues, setDraftValues] = useState<Record<string, string>>({});
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const openFieldSheet = (sheet: ProfileSheet) => {
     if (sheet === "basic") {
@@ -74,8 +77,17 @@ export function ProfileSettings({
   };
 
   const handleLogout = () => {
-    if (window.confirm(t("auth.logoutConfirmTitle"))) {
-      void logout().then(() => navigate("/welcome"));
+    setLogoutOpen(true);
+  };
+
+  const confirmLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logout();
+      navigate("/welcome");
+    } finally {
+      setLoggingOut(false);
+      setLogoutOpen(false);
     }
   };
 
@@ -250,6 +262,19 @@ export function ProfileSettings({
           })}
         </div>
       </Sheet>
+
+      <ConfirmDialog
+        cancelLabel={t("auth.logoutConfirmNo")}
+        confirmLabel={t("auth.logoutConfirmYes")}
+        confirmVariant="danger"
+        description={t("auth.signOutHint")}
+        icon={LogOut}
+        loading={loggingOut}
+        open={logoutOpen}
+        title={t("auth.logoutConfirmTitle")}
+        onConfirm={confirmLogout}
+        onOpenChange={setLogoutOpen}
+      />
     </div>
   );
 }

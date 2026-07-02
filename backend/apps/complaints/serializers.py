@@ -4,11 +4,19 @@ from rest_framework import serializers
 
 from apps.users.models import StaffUser
 
+from .image_utils import optimize_complaint_photo
 from .models import CitizenAccount, CitizenMessage, Complaint, ComplaintLog
 from .phone_utils import is_valid_tz_phone, normalize_tz_phone
 
 MAX_PHOTO_SIZE = 5 * 1024 * 1024
-ALLOWED_PHOTO_TYPES = {"image/jpeg", "image/png", "image/jpg"}
+ALLOWED_PHOTO_TYPES = {
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/pjpeg",
+    "image/webp",
+    "application/octet-stream",
+}
 COORDINATE_QUANTIZE = Decimal("0.000001")
 
 
@@ -85,11 +93,19 @@ class ComplaintCreateSerializer(serializers.ModelSerializer):
         )
 
     def validate_photo(self, photo):
-        if photo.size > MAX_PHOTO_SIZE:
-            raise serializers.ValidationError("Photo must be 5 MB or smaller.")
-        content_type = getattr(photo, "content_type", "") or ""
+        content_type = (getattr(photo, "content_type", "") or "").lower()
         if content_type and content_type not in ALLOWED_PHOTO_TYPES:
             raise serializers.ValidationError("Photo must be JPEG or PNG.")
+
+        try:
+            photo = optimize_complaint_photo(photo)
+        except Exception as exc:
+            raise serializers.ValidationError(
+                "Photo could not be processed. Use a JPEG or PNG image.",
+            ) from exc
+
+        if photo.size > MAX_PHOTO_SIZE:
+            raise serializers.ValidationError("Photo must be 5 MB or smaller.")
         return photo
 
     def validate_latitude(self, value):

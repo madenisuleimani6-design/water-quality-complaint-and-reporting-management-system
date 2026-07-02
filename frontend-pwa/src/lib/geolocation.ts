@@ -6,6 +6,18 @@ export type CurrentLocation = {
   areaName: string | null;
 };
 
+const HIGH_ACCURACY_OPTIONS: PositionOptions = {
+  enableHighAccuracy: true,
+  timeout: 20000,
+  maximumAge: 0,
+};
+
+const FALLBACK_OPTIONS: PositionOptions = {
+  enableHighAccuracy: false,
+  timeout: 12000,
+  maximumAge: 0,
+};
+
 async function reverseGeocode(
   latitude: number,
   longitude: number,
@@ -15,7 +27,7 @@ async function reverseGeocode(
     url.searchParams.set("format", "json");
     url.searchParams.set("lat", String(latitude));
     url.searchParams.set("lon", String(longitude));
-    url.searchParams.set("zoom", "14");
+    url.searchParams.set("zoom", "16");
     const response = await fetch(url.toString(), {
       headers: { Accept: "application/json" },
     });
@@ -23,6 +35,7 @@ async function reverseGeocode(
     const data = (await response.json()) as {
       address?: {
         suburb?: string;
+        neighbourhood?: string;
         city_district?: string;
         city?: string;
         town?: string;
@@ -31,7 +44,11 @@ async function reverseGeocode(
     };
     const addr = data.address;
     if (!addr) return null;
-    return [addr.suburb ?? addr.city_district, addr.city ?? addr.town, addr.state]
+    return [
+      addr.suburb ?? addr.neighbourhood ?? addr.city_district,
+      addr.city ?? addr.town,
+      addr.state,
+    ]
       .filter(Boolean)
       .join(", ");
   } catch {
@@ -39,31 +56,85 @@ async function reverseGeocode(
   }
 }
 
-function getPosition(): Promise<GeolocationPosition> {
+function getPosition(options: PositionOptions): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
       reject(new Error("Geolocation unavailable"));
       return;
     }
-    navigator.geolocation.getCurrentPosition(resolve, reject, {
-      enableHighAccuracy: false,
-      timeout: 15000,
-      maximumAge: 60000,
-    });
+    navigator.geolocation.getCurrentPosition(resolve, reject, options);
   });
 }
 
-export async function fetchCurrentLocation(): Promise<CurrentLocation> {
-  try {
-    const position = await getPosition();
-    const latitude = roundCoordinate(position.coords.latitude);
-    const longitude = roundCoordinate(position.coords.longitude);
-    let areaName: string | null = null;
-    if (latitude != null && longitude != null) {
-      areaName = await reverseGeocode(latitude, longitude);
-    }
-    return { latitude, longitude, areaName };
-  } catch {
+function positionToLocation(position: GeolocationPosition): CurrentLocation {
+  return {
+    latitude: roundCoordinate(position.coords.latitude),
+    longitude: roundCoordinate(position.coords.longitude),
+    areaName: null,
+  };
+}
+
+export async function fetchAccurateLocation(): Promise<CurrentLocation> {
+  if (!navigator.geolocation) {
     return { latitude: null, longitude: null, areaName: null };
   }
+
+  let position: GeolocationPosition | null = null;
+
+  try {
+    position = await getPosition(HIGH_ACCURACY_OPTIONS);
+  } catch {
+    try {
+      position = await getPosition(FALLBACK_OPTIONS);
+    } catch {
+      return { latitude: null, longitude: null, areaName: null };
+    }
+  }
+
+  const location = positionToLocation(position);
+  if (location.latitude != null && location.longitude != null) {
+    location.areaName = await reverseGeocode(
+      location.latitude,
+      location.longitude,
+    );
+  }
+  return location;
+}
+
+/** @deprecated Use fetchAccurateLocation for complaint capture. */
+export async function fetchCurrentLocation(): Promise<CurrentLocation> {
+  return fetchAccurateLocation();
+}
+
+export function watchAccurateLocation(
+  onUpdate: (location: CurrentLocation) => void,
+  onError?: () => void,
+): () => void {
+  if (!navigator.geolocation) {
+    onError?.();
+    return () => undefined;
+  }
+
+  let active = true;
+  const watchId = navigator.geolocation.watchPosition(
+    (position) => {
+      if (!active) return;
+      const location = positionToLocation(position);
+      if (location.latitude == null || location.longitude == null) {
+        onUpdate(location);
+        return;
+      }
+      void reverseGeocode(location.latitude, location.longitude).then((areaName) => {
+        if (!active) return;
+        onUpdate({ ...location, areaName });
+      });
+    },
+    () => onError?.(),
+    HIGH_ACCURACY_OPTIONS,
+  );
+
+  return () => {
+    active = false;
+    navigator.geolocation.clearWatch(watchId);
+  };
 }

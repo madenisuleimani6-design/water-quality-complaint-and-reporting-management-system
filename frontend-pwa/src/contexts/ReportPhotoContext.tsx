@@ -9,6 +9,7 @@ import {
 
 export type ReportPhotoDraft = {
   photoUri: string;
+  photoFile: File;
   latitude: number | null;
   longitude: number | null;
   areaName: string | null;
