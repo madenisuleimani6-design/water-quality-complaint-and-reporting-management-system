@@ -32,7 +32,7 @@ export function MessageComposer({
 
   return (
     <div
-      className="border-t border-slate-200 bg-white px-4 pb-safe pt-3"
+      className="border-t border-slate-200 bg-white px-4 pb-3 pt-3"
       style={{ boxShadow: theme.shadow.composer }}
     >
       {!profileComplete ? (
@@ -49,8 +49,8 @@ export function MessageComposer({
         <textarea
           aria-label={t("messages.placeholder")}
           disabled={!profileComplete || sending}
-          rows={1}
-          className="max-h-[120px] min-h-[48px] flex-1 resize-none rounded-2xl border border-slate-200 bg-dawasa-surface px-4 py-3 font-poppins text-base text-slate-900 outline-none focus:ring-2 focus:ring-dawasa-cta"
+          rows={2}
+          className="max-h-[120px] min-h-[52px] flex-1 resize-none rounded-2xl border-2 border-slate-300 bg-white px-4 py-3 font-poppins text-base text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:border-dawasa-cta focus:ring-2 focus:ring-dawasa-cta/30 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
           placeholder={t("messages.placeholder")}
           value={value}
           onChange={(e) => onChangeText(e.target.value)}

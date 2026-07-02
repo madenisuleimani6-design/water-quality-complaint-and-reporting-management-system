@@ -4,6 +4,7 @@ import { GradientHeader } from "@/components/layout/GradientHeader";
 import {
   CONTENT_SHEET_TOP_PADDING,
   TAB_HEADER_CONTENT_HEIGHT,
+  messageComposerScrollInset,
   tabBarInset,
 } from "@/constants/layout";
 import { theme } from "@/constants/theme";
@@ -45,12 +46,19 @@ export function TabScreenLayout({
           )}
           style={{
             paddingTop: CONTENT_SHEET_TOP_PADDING,
-            paddingBottom: tabBarInset(8),
+            paddingBottom: footer ? messageComposerScrollInset(12) : tabBarInset(8),
           }}
         >
           {children}
         </div>
-        {footer ? <div className="shrink-0">{footer}</div> : null}
+        {footer ? (
+          <div
+            className="fixed left-1/2 z-40 w-full max-w-[480px] -translate-x-1/2"
+            style={{ bottom: tabBarInset(0) }}
+          >
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>
   );
