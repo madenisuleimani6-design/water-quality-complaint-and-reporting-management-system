@@ -73,10 +73,15 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
+_sqlite_name = os.environ.get("SQLITE_DB_NAME", "db.sqlite3").strip() or "db.sqlite3"
+_sqlite_path = Path(_sqlite_name)
+if not _sqlite_path.is_absolute():
+    _sqlite_path = BASE_DIR / _sqlite_path
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": _sqlite_path,
     }
 }
 

@@ -1,5 +1,5 @@
 """
-Production settings — Render (Postgres) + optional Redis for Channels.
+Production settings — Render (SQLite default, optional Postgres/Redis).
 """
 
 import os
