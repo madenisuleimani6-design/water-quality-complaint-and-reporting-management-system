@@ -2,7 +2,7 @@ import { Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 
-import { TAB_BAR_CONTENT_HEIGHT } from "@/constants/layout";
+import { tabBarInset } from "@/constants/layout";
 import { theme } from "@/constants/theme";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { cn } from "@/lib/utils";
@@ -23,13 +23,12 @@ export function InstallPrompt({ className }: InstallPromptProps) {
   if (!visible) return null;
 
   const onTabRoute = TAB_ROUTES.some((route) => pathname.startsWith(route));
-  const bottomOffset = onTabRoute ? TAB_BAR_CONTENT_HEIGHT + 12 : 12;
 
   return (
     <div
       className={cn("pointer-events-none fixed inset-x-0 z-50 flex justify-center px-4", className)}
       style={{
-        bottom: `calc(${bottomOffset}px + env(safe-area-inset-bottom, 0px))`,
+        bottom: onTabRoute ? tabBarInset(12) : "calc(12px + env(safe-area-inset-bottom, 0px))",
       }}
       role="region"
       aria-label={t("pwa.installTitle")}

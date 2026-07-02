@@ -8,7 +8,6 @@ import { EmptyHomeState } from "@/components/home/EmptyHomeState";
 import { FloatingActionButton } from "@/components/home/FloatingActionButton";
 import { HomeStatsBar } from "@/components/home/HomeStatsBar";
 import { TabScreenLayout } from "@/components/layout/TabScreenLayout";
-import { TAB_BAR_CONTENT_HEIGHT } from "@/constants/layout";
 import { theme } from "@/constants/theme";
 import { useComplaints } from "@/hooks/useComplaints";
 import { useProfile } from "@/hooks/useProfile";
@@ -35,7 +34,7 @@ export function HomePage() {
     ? t("home.headerSubtitle")
     : t("home.headerSubtitleNoPhone");
 
-  const listBottomPadding = TAB_BAR_CONTENT_HEIGHT + 88;
+  const listBottomPadding = 88;
 
   if (!profileReady || loading) {
     return (

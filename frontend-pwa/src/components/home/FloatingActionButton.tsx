@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 
-import { TAB_BAR_CONTENT_HEIGHT } from "@/constants/layout";
+import { tabBarInset } from "@/constants/layout";
 import { theme } from "@/constants/theme";
 
 type FloatingActionButtonProps = {
@@ -13,7 +13,7 @@ export function FloatingActionButton({
   onPress,
   accessibilityLabel,
 }: FloatingActionButtonProps) {
-  const bottom = TAB_BAR_CONTENT_HEIGHT + 16;
+  const bottom = 16;
 
   return (
     <motion.button
@@ -25,7 +25,7 @@ export function FloatingActionButton({
       style={{
         backgroundColor: theme.ctaPrimary,
         boxShadow: theme.shadow.fab,
-        bottom: `calc(${bottom}px + env(safe-area-inset-bottom, 0px))`,
+        bottom: tabBarInset(bottom),
         right: "max(1rem, calc((100vw - 480px) / 2 + 1rem))",
       }}
     >

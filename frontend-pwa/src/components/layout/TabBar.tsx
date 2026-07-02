@@ -17,10 +17,12 @@ export function TabBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-1/2 z-40 w-full max-w-[480px] -translate-x-1/2 border-t border-slate-200 bg-white pb-safe"
-      style={{ height: TAB_BAR_CONTENT_HEIGHT }}
+      className="z-40 w-full shrink-0 border-t border-slate-200 bg-white pb-safe"
     >
-      <div className="flex h-full items-center justify-around px-2">
+      <div
+        className="flex items-center justify-around px-2"
+        style={{ minHeight: TAB_BAR_CONTENT_HEIGHT }}
+      >
         {tabs.map(({ to, icon: Icon, labelKey }) => (
           <NavLink
             key={to}

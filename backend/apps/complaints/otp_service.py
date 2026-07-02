@@ -72,7 +72,8 @@ def send_otp(phone: str) -> tuple[str, str, int | None]:
     )
 
     send_sms(phone, code)
-    dev_code = code if mock_mode else None
+    sms_configured = getattr(settings, "OTP_SMS_PROVIDER_CONFIGURED", False)
+    dev_code = code if mock_mode or not sms_configured else None
     return str(session.id), ttl, dev_code
 
 

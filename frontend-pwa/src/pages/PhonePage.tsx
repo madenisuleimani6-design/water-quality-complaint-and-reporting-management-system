@@ -56,6 +56,7 @@ export function PhonePage() {
       }
       hero={<AuthPhoneHero />}
       showBack
+      onBack={() => navigate("/welcome")}
       subtitle={t("auth.phoneSubtitle")}
       title={t("auth.phoneTitle")}
     >

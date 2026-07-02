@@ -18,7 +18,7 @@ function authHomeRoute(phase: AuthPhase): string {
 }
 
 function isAllowedAuthRoute(path: string, phase: AuthPhase): boolean {
-  if (phase === "otp_pending") return path === "/otp";
+  if (phase === "otp_pending") return path === "/otp" || path === "/phone";
   if (phase === "onboarding") return path === "/onboarding";
   return path === "/welcome" || path === "/phone";
 }

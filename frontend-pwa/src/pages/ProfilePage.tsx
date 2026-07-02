@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { AlertBanner } from "@/components/layout/AlertBanner";
 import { TabScreenLayout } from "@/components/layout/TabScreenLayout";
 import { ProfileSettings } from "@/components/profile/ProfileSettings";
-import { TAB_BAR_CONTENT_HEIGHT } from "@/constants/layout";
 import { theme } from "@/constants/theme";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -59,7 +58,7 @@ export function ProfilePage() {
       subtitle={t("profile.headerSubtitle")}
       title={t("profile.title")}
     >
-      <div style={{ paddingBottom: TAB_BAR_CONTENT_HEIGHT }}>
+      <div>
         {savedNotice ? (
           <AlertBanner message={t("profile.fieldUpdated")} variant="success" />
         ) : null}

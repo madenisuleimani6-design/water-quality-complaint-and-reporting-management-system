@@ -12,6 +12,7 @@ type AuthScreenProps = {
   subtitle?: string;
   hero?: ReactNode;
   showBack?: boolean;
+  onBack?: () => void;
   footer?: ReactNode;
   centerContent?: boolean;
   centerHeader?: boolean;
@@ -24,6 +25,7 @@ export function AuthScreen({
   subtitle,
   hero,
   showBack = false,
+  onBack,
   footer,
   centerContent = false,
   centerHeader = false,
@@ -31,14 +33,22 @@ export function AuthScreen({
 }: AuthScreenProps) {
   const navigate = useNavigate();
 
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+      return;
+    }
+    navigate(-1);
+  };
+
   return (
     <div className="flex min-h-dvh flex-col" style={{ backgroundColor: theme.surface }}>
       {showBack ? (
-        <div className="px-5 pt-2">
+        <div className="px-5 pt-safe">
           <button
             type="button"
             aria-label="Back"
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
             className="-ml-1 flex h-10 w-10 items-center justify-center rounded-full bg-white"
             style={{ boxShadow: theme.shadow.cardSubtle }}
           >

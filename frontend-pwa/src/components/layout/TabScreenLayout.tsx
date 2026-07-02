@@ -4,6 +4,7 @@ import { GradientHeader } from "@/components/layout/GradientHeader";
 import {
   CONTENT_SHEET_TOP_PADDING,
   TAB_HEADER_CONTENT_HEIGHT,
+  tabBarInset,
 } from "@/constants/layout";
 import { theme } from "@/constants/theme";
 import { cn } from "@/lib/utils";
@@ -42,7 +43,10 @@ export function TabScreenLayout({
             "min-h-0 flex-1 overflow-y-auto overscroll-contain px-4",
             scrollClassName,
           )}
-          style={{ paddingTop: CONTENT_SHEET_TOP_PADDING }}
+          style={{
+            paddingTop: CONTENT_SHEET_TOP_PADDING,
+            paddingBottom: tabBarInset(8),
+          }}
         >
           {children}
         </div>

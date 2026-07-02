@@ -27,6 +27,12 @@ export function OtpPage() {
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
 
   useEffect(() => {
+    if (otpDevCode?.length === 4) {
+      setCode(otpDevCode);
+    }
+  }, [otpDevCode]);
+
+  useEffect(() => {
     if (secondsLeft <= 0) return;
     const timer = setInterval(() => setSecondsLeft((v) => v - 1), 1000);
     return () => clearInterval(timer);
@@ -58,6 +64,11 @@ export function OtpPage() {
     }
   };
 
+  const handleBack = () => {
+    clearAuthError();
+    navigate("/phone");
+  };
+
   return (
     <AuthScreen
       centerHeader
@@ -85,6 +96,7 @@ export function OtpPage() {
           </button>
         </>
       }
+      onBack={handleBack}
       showBack
       subtitle={t("auth.otpSubtitle", { phone: pendingPhone })}
       title={t("auth.otpTitle")}
@@ -92,17 +104,13 @@ export function OtpPage() {
       {authErrorMessage() ? (
         <AlertBanner message={authErrorMessage()!} variant="error" />
       ) : null}
-      {otpDevCode ? (
-        <AlertBanner message={t("auth.otpDevNotice")} variant="info">
-          <p
-            className="mt-3 text-center font-poppins-bold text-2xl tracking-[0.35em] text-slate-900"
-            aria-label={t("auth.otpDevHint", { code: otpDevCode })}
-          >
-            {otpDevCode}
-          </p>
-        </AlertBanner>
-      ) : null}
-      <OtpInput disabled={saving} value={code} onChange={setCode} />
+      <OtpInput
+        devCode={otpDevCode}
+        devNotice={otpDevCode ? t("auth.otpDevNotice") : undefined}
+        disabled={saving}
+        value={code}
+        onChange={setCode}
+      />
     </AuthScreen>
   );
 }
