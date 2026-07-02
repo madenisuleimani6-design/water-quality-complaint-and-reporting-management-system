@@ -29,6 +29,8 @@ services:
         value: db.sqlite3
       - key: OTP_MOCK_MODE
         value: "false"
+      - key: MAP_BOX_TOKEN
+        sync: false
       - key: DJANGO_SUPERUSER_USERNAME
         sync: false
       - key: DJANGO_SUPERUSER_EMAIL
