@@ -10,6 +10,13 @@ export const API_URL = (() => {
   return "http://localhost:8000";
 })();
 
+/** Join API base + path for fetch (works with relative paths in dev via Vite proxy). */
+export function buildApiUrl(path: string): string {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  if (!API_URL) return normalizedPath;
+  return `${API_URL.replace(/\/$/, "")}${normalizedPath}`;
+}
+
 export const COMPLAINTS_ENDPOINT = "/api/complaints/";
 export const MESSAGES_ENDPOINT = "/api/messages/";
 export const CITIZENS_OTP_SEND_ENDPOINT = "/api/citizens/otp/send/";

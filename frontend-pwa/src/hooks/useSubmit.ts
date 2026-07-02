@@ -41,6 +41,14 @@ export function useSubmit() {
       }
 
       const result = await submitComplaint(input);
+      if (!result.id) {
+        setState({
+          isSubmitting: false,
+          error: "Server did not return a complaint id.",
+          queuedOffline: false,
+        });
+        return { success: false as const, error: "Server did not return a complaint id." };
+      }
       setState({ isSubmitting: false, error: null, queuedOffline: false });
       return {
         success: true as const,

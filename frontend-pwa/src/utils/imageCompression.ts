@@ -1,5 +1,5 @@
-/** Target upload size (backend limit is 5 MB). */
-export const PHOTO_UPLOAD_MAX_BYTES = 4 * 1024 * 1024;
+/** Target upload size — stay under Django in-memory upload default. */
+export const PHOTO_UPLOAD_MAX_BYTES = 2 * 1024 * 1024;
 
 const MAX_DIMENSION = 1600;
 const INITIAL_JPEG_QUALITY = 0.82;

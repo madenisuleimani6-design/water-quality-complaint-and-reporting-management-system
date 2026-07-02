@@ -151,7 +151,7 @@ export function ReportConfirmPage() {
         ) : error === "location_required" ? (
           <AlertBanner message={t("confirm.locationRequired")} variant="error" />
         ) : error ? (
-          <AlertBanner message={error === "submit failed" ? t("confirm.submitError") : error} variant="error" />
+          <AlertBanner message={error} variant="error" />
         ) : null}
 
         <div className="mb-3">

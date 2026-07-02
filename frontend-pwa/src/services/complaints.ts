@@ -1,6 +1,4 @@
-import axios from "axios";
-
-import { COMPLAINTS_ENDPOINT, resolveMediaUrl } from "@/constants/config";
+import { buildApiUrl, COMPLAINTS_ENDPOINT, resolveMediaUrl } from "@/constants/config";
 import type { ComplaintDetail, ComplaintSummary } from "@/types/citizen";
 import { preparePhotoForUpload } from "@/utils/imageCompression";
 import { api } from "./api";
@@ -34,38 +32,40 @@ function normalizeComplaint<T extends ComplaintApiRow>(row: T): T {
   };
 }
 
-function formatApiError(error: unknown): string {
-  if (axios.isAxiosError(error)) {
-    if (!error.response) {
-      if (error.code === "ECONNABORTED") {
-        return "Request timed out. Check your connection and try again.";
-      }
-      return "Could not reach the server. Check your internet connection.";
+function formatPayloadError(data: unknown, status: number): string {
+  if (typeof data === "string" && data.trim()) return data.trim();
+  if (data && typeof data === "object") {
+    const record = data as Record<string, unknown>;
+    const detail = record.detail;
+    if (typeof detail === "string" && detail.trim()) return detail.trim();
+    if (Array.isArray(detail)) {
+      const text = detail.filter((item) => typeof item === "string").join(", ");
+      if (text) return text;
     }
 
-    const data = error.response.data;
-    if (typeof data === "string" && data.trim()) return data.trim();
-    if (data && typeof data === "object") {
-      const record = data as Record<string, unknown>;
-      if (typeof record.detail === "string" && record.detail.trim()) {
-        return record.detail.trim();
+    const messages: string[] = [];
+    for (const [field, value] of Object.entries(record)) {
+      if (field === "detail") continue;
+      if (Array.isArray(value)) {
+        const text = value.filter((item) => typeof item === "string").join(", ");
+        if (text) messages.push(`${field}: ${text}`);
+      } else if (typeof value === "string" && value.trim()) {
+        messages.push(`${field}: ${value.trim()}`);
       }
-
-      const messages: string[] = [];
-      for (const [field, value] of Object.entries(record)) {
-        if (field === "detail") continue;
-        if (Array.isArray(value)) {
-          const text = value.filter((item) => typeof item === "string").join(", ");
-          if (text) messages.push(`${field}: ${text}`);
-        } else if (typeof value === "string" && value.trim()) {
-          messages.push(`${field}: ${value.trim()}`);
-        }
-      }
-      if (messages.length) return messages.join(" • ");
     }
+    if (messages.length) return messages.join(" • ");
   }
+  return `Upload failed (${status})`;
+}
 
-  return "submit failed";
+async function parseResponseBody(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text.trim()) return null;
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return text;
+  }
 }
 
 export async function listComplaintsByPhone(
@@ -93,10 +93,16 @@ export async function submitComplaint(
     throw new Error("location_required");
   }
 
+  let photoFile = input.photoFile;
+  if (!photoFile || photoFile.size === 0) {
+    photoFile = await preparePhotoForUpload(input.photoUri);
+  }
+  if (photoFile.size === 0) {
+    throw new Error("Photo is empty. Please retake the picture.");
+  }
+
   const formData = new FormData();
-  const photoFile =
-    input.photoFile ?? (await preparePhotoForUpload(input.photoUri));
-  formData.append("photo", photoFile, photoFile.name);
+  formData.append("photo", photoFile, photoFile.name || "complaint-photo.jpg");
   formData.append("latitude", String(input.latitude));
   formData.append("longitude", String(input.longitude));
 
@@ -113,19 +119,40 @@ export async function submitComplaint(
     formData.append("reporterName", input.reporterName.trim());
   }
 
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 120_000);
+
   try {
-    const { data } = await api.post<SubmitComplaintResult>(
-      COMPLAINTS_ENDPOINT,
-      formData,
-      {
-        // Let the browser set multipart/form-data with the correct boundary.
-        timeout: 120000,
-        maxBodyLength: Infinity,
-        maxContentLength: Infinity,
-      },
-    );
+    const response = await fetch(buildApiUrl(COMPLAINTS_ENDPOINT), {
+      method: "POST",
+      body: formData,
+      signal: controller.signal,
+      headers: { Accept: "application/json" },
+    });
+
+    const payload = await parseResponseBody(response);
+
+    if (!response.ok) {
+      throw new Error(formatPayloadError(payload, response.status));
+    }
+
+    const data = payload as SubmitComplaintResult;
+    if (!data?.id) {
+      throw new Error("Server did not return a complaint id.");
+    }
     return data;
   } catch (error) {
-    throw new Error(formatApiError(error));
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("Request timed out. Check your connection and try again.");
+    }
+    if (error instanceof TypeError) {
+      throw new Error("Could not reach the server. Check your internet connection.");
+    }
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Upload failed");
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 }

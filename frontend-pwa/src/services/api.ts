@@ -18,13 +18,19 @@ let refreshPromise: Promise<string | null> | null = null;
 function isPublicComplaintCreate(config: InternalAxiosRequestConfig): boolean {
   if ((config.method ?? "").toLowerCase() !== "post") return false;
   const url = (config.url ?? "").replace(/\/$/, "");
-  return url === COMPLAINTS_ENDPOINT.replace(/\/$/, "");
+  const endpoint = COMPLAINTS_ENDPOINT.replace(/\/$/, "");
+  return url === endpoint || url.endsWith(endpoint);
 }
 
 api.interceptors.request.use(async (config) => {
   if (config.data instanceof FormData && config.headers) {
-    delete config.headers["Content-Type"];
-    delete config.headers["content-type"];
+    // Axios must not set multipart Content-Type without a boundary.
+    if (typeof config.headers.set === "function") {
+      config.headers.set("Content-Type", false);
+    } else {
+      delete config.headers["Content-Type"];
+      delete config.headers["content-type"];
+    }
   }
 
   if (isPublicComplaintCreate(config)) {
