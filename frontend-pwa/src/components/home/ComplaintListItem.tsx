@@ -1,4 +1,5 @@
 import { Calendar, ChevronRight, ImageOff, MapPin } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { theme } from "@/constants/theme";
@@ -21,6 +22,7 @@ function formatListDate(iso: string, locale: string) {
 
 export function ComplaintListItem({ complaint, onPress }: ComplaintListItemProps) {
   const { t, i18n } = useTranslation();
+  const [thumbError, setThumbError] = useState(false);
   const area = complaint.areaName || t("confirm.locationUnavailable");
   const date = formatListDate(complaint.submittedAt, i18n.language);
   const note = complaint.note?.trim();
@@ -41,11 +43,12 @@ export function ComplaintListItem({ complaint, onPress }: ComplaintListItemProps
           className="shrink-0 overflow-hidden rounded-xl bg-slate-100"
           style={{ height: THUMB_SIZE, width: THUMB_SIZE }}
         >
-          {complaint.photoUrl ? (
+          {complaint.photoUrl && !thumbError ? (
             <img
               src={complaint.photoUrl}
               alt=""
               className="h-full w-full object-cover"
+              onError={() => setThumbError(true)}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-slate-50">

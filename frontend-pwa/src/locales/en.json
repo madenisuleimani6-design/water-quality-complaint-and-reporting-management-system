@@ -161,6 +161,7 @@
     "subtitle": "Your report has been received and is being processed.",
     "reportAnother": "Report another",
     "backHome": "Back to Home",
+    "redirectingHome": "Returning to home shortly…",
     "status": {
       "new": "Received",
       "assigned": "Assigned to investigation team",

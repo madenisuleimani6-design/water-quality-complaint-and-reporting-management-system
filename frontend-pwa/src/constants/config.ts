@@ -59,11 +59,19 @@ export function getWebSocketUrl(complaintId: string): string {
 
 export function resolveMediaUrl(path: string | null | undefined): string | null {
   if (!path) return null;
-  if (path.startsWith("http://") || path.startsWith("https://")) {
-    return path;
+  let url = path;
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    const base =
+      API_URL ||
+      (typeof window !== "undefined" ? window.location.origin : "http://localhost:8000");
+    url = `${base.replace(/\/$/, "")}${url.startsWith("/") ? url : `/${url}`}`;
   }
-  const base =
-    API_URL ||
-    (typeof window !== "undefined" ? window.location.origin : "http://localhost:8000");
-  return `${base.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
+  if (
+    typeof window !== "undefined" &&
+    window.location.protocol === "https:" &&
+    url.startsWith("http://")
+  ) {
+    url = `https://${url.slice(7)}`;
+  }
+  return url;
 }

@@ -1,6 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { ComplaintListItem } from "@/components/home/ComplaintListItem";
@@ -15,12 +15,21 @@ import { useProfile } from "@/hooks/useProfile";
 export function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile, ready: profileReady, isComplete } = useProfile();
   const { complaints, loading, refreshing, refetch } = useComplaints(profile.phone);
 
   useEffect(() => {
     if (profileReady) refetch();
   }, [profileReady, refetch]);
+
+  useEffect(() => {
+    const state = location.state as { refreshComplaints?: boolean } | null;
+    if (state?.refreshComplaints && profileReady) {
+      refetch();
+      navigate("/home", { replace: true, state: null });
+    }
+  }, [location.state, profileReady, refetch, navigate]);
 
   const openReport = () => {
     if (!isComplete) {

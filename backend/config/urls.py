@@ -1,10 +1,7 @@
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve as media_serve
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from apps.complaints.urls import message_urlpatterns
@@ -20,5 +17,12 @@ urlpatterns = [
     path("api/reports/", include("apps.reports.urls")),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve uploaded complaint photos in all environments (required for production PWA).
+if settings.MEDIA_ROOT:
+    urlpatterns += [
+        re_path(
+            r"^media/(?P<path>.*)$",
+            media_serve,
+            {"document_root": settings.MEDIA_ROOT},
+        ),
+    ]

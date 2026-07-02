@@ -26,9 +26,10 @@ type ComplaintsListResponse = {
 type ComplaintApiRow = ComplaintSummary & { photoUrl?: string | null };
 
 function normalizeComplaint<T extends ComplaintApiRow>(row: T): T {
+  const photoUrl = resolveMediaUrl(row.photoUrl ?? (row as { photo_url?: string }).photo_url);
   return {
     ...row,
-    photoUrl: resolveMediaUrl(row.photoUrl),
+    photoUrl,
   };
 }
 

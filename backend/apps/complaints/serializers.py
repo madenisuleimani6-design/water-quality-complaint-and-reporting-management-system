@@ -29,10 +29,12 @@ def normalize_coordinate(value) -> Decimal | None:
 def build_complaint_photo_url(photo, request) -> str | None:
     if not photo:
         return None
-    url = photo.url
     if request is not None:
-        return request.build_absolute_uri(url)
-    return url
+        url = request.build_absolute_uri(photo.url)
+        if request.is_secure() and url.startswith("http://"):
+            url = f"https://{url[7:]}"
+        return url
+    return photo.url
 
 
 class ComplaintSummarySerializer(serializers.ModelSerializer):

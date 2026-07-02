@@ -1,4 +1,4 @@
-import { Image, Loader2 } from "lucide-react";
+import { ImageOff, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -32,6 +32,7 @@ export function ComplaintDetailPage() {
   const [complaint, setComplaint] = useState<ComplaintDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [photoError, setPhotoError] = useState(false);
 
   useEffect(() => {
     if (!complaintId) {
@@ -46,7 +47,10 @@ export function ComplaintDetailPage() {
 
     void fetchComplaintDetail(complaintId)
       .then((data) => {
-        if (!cancelled) setComplaint(data);
+        if (!cancelled) {
+          setComplaint(data);
+          setPhotoError(false);
+        }
       })
       .catch(() => {
         if (!cancelled) setError(true);
@@ -87,15 +91,16 @@ export function ComplaintDetailPage() {
         ) : (
           <>
             <Card className="mb-4 overflow-hidden p-0">
-              {complaint.photoUrl ? (
+              {complaint.photoUrl && !photoError ? (
                 <img
                   src={complaint.photoUrl}
                   alt=""
                   className="h-56 w-full bg-slate-100 object-cover"
+                  onError={() => setPhotoError(true)}
                 />
               ) : (
                 <div className="flex h-56 w-full items-center justify-center bg-slate-100">
-                  <Image className="h-10 w-10" style={{ color: theme.tabInactive }} />
+                  <ImageOff className="h-10 w-10" style={{ color: theme.tabInactive }} />
                 </div>
               )}
             </Card>
