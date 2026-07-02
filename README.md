@@ -55,6 +55,60 @@ python manage.py seed_demo_data --citizen-only
 
 Mock OTP is printed in the terminal when `OTP_MOCK_MODE` is enabled (default in development). Demo phone: `0712345678`.
 
+### Demo users
+
+Seeded by `python manage.py seed_demo_data` (included in the tracked `backend/db.sqlite3` for local and Render SQLite deploys).
+
+#### Staff — Django admin (`/admin/`)
+
+All demo staff share password **`demo12345`**. Recommended login: **`supervisor_nyoni`**.
+
+| Username | Password | Role | Email | Name |
+|----------|----------|------|-------|------|
+| `supervisor_nyoni` | `demo12345` | supervisor | nyoni@dawasa.go.tz | Asha Nyoni |
+| `officer_mwamba` | `demo12345` | field_officer | mwamba@dawasa.go.tz | Juma Mwamba |
+| `officer_kassim` | `demo12345` | field_officer | kassim@dawasa.go.tz | Fatma Kassim |
+| `viewer_hassan` | `demo12345` | viewer | hassan@dawasa.go.tz | Omar Hassan |
+
+These accounts are staff users (`is_staff=True`), not Django superusers. They can use the admin dashboard with role-based access but cannot manage all Django superuser-only features.
+
+#### Super admin — Django superuser
+
+| Username | Password | Email |
+|----------|----------|-------|
+| `admin` | `suleimanimaulid@123` | suleimanimaulid@gmail.com |
+
+Log in at `/admin/` with the credentials above for full superuser access. This account is stored in `backend/db.sqlite3` (included in the repo for Render SQLite deploys).
+
+To create an additional superuser locally or on Render:
+
+```bash
+cd backend
+python manage.py createsuperuser
+```
+
+**Non-interactive:**
+
+```bash
+$env:DJANGO_SUPERUSER_USERNAME="admin"
+$env:DJANGO_SUPERUSER_EMAIL="your@email.com"
+$env:DJANGO_SUPERUSER_PASSWORD="your-secure-password"
+python manage.py createsuperuser --noinput
+```
+
+For day-to-day demo work, **`supervisor_nyoni` / `demo12345`** is also available (staff, not superuser).
+
+#### Citizen — PWA / mobile app (phone OTP)
+
+Citizens sign in with **phone + OTP** (no password).
+
+| Phone | Alt format | Name | Email |
+|-------|------------|------|-------|
+| `0712345678` | `+255712345678` | Amina Hassan | amina.hassan@example.com |
+
+- **Local dev:** set `OTP_MOCK_MODE=true` — the OTP code is printed in the Django terminal when you request a code.
+- **Production:** set `OTP_MOCK_MODE=false` on Render — real SMS delivery is not configured yet; use mock mode only for demos until an SMS provider is wired up.
+
 ### Citizen PWA (recommended — no Expo Go or APK)
 
 ```bash
