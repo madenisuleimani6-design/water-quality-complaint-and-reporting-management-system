@@ -1,5 +1,6 @@
 from decimal import Decimal, ROUND_HALF_UP
 
+from django.conf import settings
 from rest_framework import serializers
 
 from apps.users.models import StaffUser
@@ -29,6 +30,13 @@ def normalize_coordinate(value) -> Decimal | None:
 def build_complaint_photo_url(photo, request) -> str | None:
     if not photo:
         return None
+
+    if getattr(settings, "PUBLIC_MEDIA_BASE_URL", ""):
+        photo_url = photo.url
+        if photo_url.startswith(("http://", "https://")):
+            return photo_url
+        return f"{settings.PUBLIC_MEDIA_BASE_URL}{photo_url.startswith('/') and photo_url or '/' + photo_url}"
+
     if request is not None:
         url = request.build_absolute_uri(photo.url)
         if request.is_secure() and url.startswith("http://"):

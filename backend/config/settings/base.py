@@ -97,6 +97,7 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+PUBLIC_MEDIA_BASE_URL = os.environ.get("PUBLIC_MEDIA_BASE_URL", "").strip().rstrip("/")
 
 # Complaint photos are compressed client-side; allow headroom for multipart parsing.
 DATA_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024

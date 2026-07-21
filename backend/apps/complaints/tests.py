@@ -1,7 +1,7 @@
 from io import BytesIO
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 from rest_framework import status
@@ -9,6 +9,7 @@ from rest_framework.test import APITestCase
 
 from apps.complaints.citizen_auth import issue_citizen_tokens, issue_registration_tokens
 from apps.complaints.models import CitizenAccount, CitizenMessage, Complaint, ComplaintLog
+from apps.complaints.serializers import build_complaint_photo_url
 from apps.users.models import StaffUser
 
 
@@ -48,6 +49,19 @@ def make_test_photo():
 
 
 class ComplaintModelTests(TestCase):
+    @override_settings(PUBLIC_MEDIA_BASE_URL="https://cdn.example.com")
+    def test_photo_url_uses_public_media_base_when_configured(self):
+        complaint = Complaint.objects.create(
+            photo=make_test_photo(),
+            latitude=-6.7924,
+            longitude=39.2083,
+        )
+
+        self.assertEqual(
+            build_complaint_photo_url(complaint.photo, None),
+            "https://cdn.example.com/media/complaints/photos/test.jpg",
+        )
+
     def test_create_complaint_with_location(self):
         complaint = Complaint.objects.create(
             photo=make_test_photo(),

@@ -12,6 +12,7 @@ from apps.users.models import StaffUser
 
 from .mapbox_utils import mapbox_token_status
 from .models import CitizenAccount, CitizenMessage, Complaint, ComplaintLog
+from .serializers import build_complaint_photo_url
 
 STATUS_MAP_COLORS = {
     Complaint.STATUS_NEW: "#dc2626",
@@ -279,7 +280,7 @@ class ComplaintAdmin(ModelAdmin):
             return "-"
         return format_html(
             '<img src="{}" width="48" height="48" style="object-fit:cover;border-radius:4px;" />',
-            obj.photo.url,
+            build_complaint_photo_url(obj.photo, None),
         )
 
     @admin.display(description="Preview")
@@ -288,7 +289,7 @@ class ComplaintAdmin(ModelAdmin):
             return "-"
         return format_html(
             '<img src="{}" style="max-width:480px;border-radius:8px;" />',
-            obj.photo.url,
+            build_complaint_photo_url(obj.photo, None),
         )
 
     @admin.display(description="Map")
